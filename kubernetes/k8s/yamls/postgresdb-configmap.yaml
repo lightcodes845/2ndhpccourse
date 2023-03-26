@@ -1,0 +1,8 @@
+# Source: microservice/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresdb-configmap
+  namespace: tasks-apps
+data:
+  database_url: postgresdb-database-svc-web.tasks-dbs

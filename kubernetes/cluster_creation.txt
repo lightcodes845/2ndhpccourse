@@ -1,0 +1,103 @@
+#create namespaces
+kubectl create namespace tasks-apps
+kubectl create namespace tasks-dbs
+
+#create secret tasks-dbs - recreate for tasks-apps
+kubectl apply -f postgres-secret.yaml
+#check if it was sucessfully created
+kubectl get secrets -n tasks-dbs
+
+#create volume claim for the database
+kubectl apply -f postgresdb-pvc.yaml
+#check if it was created
+kubectl get pvc -n tasks-dbs
+
+#create service
+kubectl apply -f postgresdb-service.yaml
+#check if it is created
+kubectl get services -n tasks-dbs
+
+#create configmaps
+kubectl apply -f postgresdb-configmap.yaml
+#check if configmap is created
+kubectl get configmaps -n tasks-apps
+
+#create deployments
+kubectl apply -f postgresdb-deployment.yaml
+#check if deployment is created
+kubectl get deployments -n tasks-dbs
+#check if pods are created
+kubectl get pods -n tasks-dbs
+kubectl describe pod "name-of-pod" -n tasks-dbs
+kubectl logs "name-of-pod" -n tasks-dbs
+
+#PG Admin
+#create pvc
+kubectl apply -f .\pg_admin-pvc.yaml
+#create nodeport service
+kubectl apply -f .\pg_admin-nodeport.yaml
+#create deployment
+kubectl apply -f .\pg_admin-deployment.yaml
+
+#login
+localhost:32549
+username: dare.falola7@gmail.com
+password: SuperSecret
+
+#Register Server
+host: postgresdb-database-svc-web.tasks-dbs
+username:
+password:
+
+#Backend
+#create secret
+kubectl apply -f jwt-secret.yaml
+kubectl get secrets -n tasks-apps
+
+#create configmap from file
+kubectl create configmap testsqlfile --from-file=create_tasks_db="D:\docker_k8s course\course\kubernetes\backend\src\createdb.sql" -n tasks-apps
+                                                                    (Your own full path to the file)
+
+#first create image - image can also be pushed to a public repository
+#cd ../../
+docker build -t damilare77/task_mgt_be .\backend\
+#push it to your repository
+docker push damilare77/task_mgt_be
+#create deployment
+kubectl apply -f backend-deployment.yaml
+kubectl get pods -n tasks-apps
+kubectl logs "name of pod" -n tasks-apps
+#check pg_admin for db tables
+
+#frontend
+#build the image
+#cd ../../
+docker build -t damilare77/task_mgt_fe .\frontend\
+#push the image
+docker push damilare77/task_mgt_fe
+#create service
+kubectl apply -f frontend-service.yaml
+
+#create the deployment
+kubectl apply -f frontend-deployment.yaml
+kubectl get pods -n tasks-apps
+kubectl logs -n tasks-apps frontend-deployment-6b6cb56c46-qfj9z
+
+#install nginx ingress controller
+#install helm
+https://helm.sh/docs/intro/install/
+
+#looks for what suits your operating system
+https://kubernetes.github.io/ingress-nginx/deploy/
+
+#edits your hosts file as administrator
+#Windows 10 - "C:\Windows\System32\drivers\etc\hosts"
+#Linux - "/etc/hosts"
+#Mac OS X - "/private/etc/hosts"
+
+#Add the following line
+127.0.0.1 tasks.dev
+#create ingress
+kubectl apply -f ingress.yaml
+#check if created
+kubectl get ingress -n tasks-apps

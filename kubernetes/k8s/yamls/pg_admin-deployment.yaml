@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pg-admin-deployment
+  namespace: tasks-apps
+  labels:
+    app.kubernetes.io/name: pg-admin-depl
+    helm.sh/chart: microservice-0.3.0
+    app.kubernetes.io/instance: pg-admin
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pg-admin-depl
+      app.kubernetes.io/instance: pg-admin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pg-admin-depl
+        app.kubernetes.io/instance: pg-admin
+    spec:
+      containers:
+        - name: pg-admin
+          image: dpage/pgadmin4:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: pgadmin-svc
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pgadmin-email
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pgadmin-password
+          volumeMounts:
+            - mountPath: /var/lib/pgadmin
+              name: pgadmin-pv-claim-volume
+          resources: null
+      volumes:
+        - name: pgadmin-pv-claim-volume
+          persistentVolumeClaim:
+            claimName: pgadmin-pv-claim
